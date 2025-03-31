@@ -1,6 +1,6 @@
 ﻿@page "/lieuxlivraison"
+
 @using Corail.Maquettage.Components.Lieux
-@using Corail.Maquettage.Components.Shared
 @using Corail.Maquettage.Models
 
 @rendermode InteractiveServer
@@ -8,8 +8,7 @@
 @inject Corail.Maquettage.Services.LieuxService lieuService
 
 @code
-{
-    private bool showDeleteConfirmation = false;
+{    
     private List<LieuDeLivraisonPreview> filteredLieux = new();
     private LieuxDeLivraisonModel? selectedLieu;
 
@@ -28,6 +27,7 @@
             Nom = lieuDetail.Nom,
             Numero = lieuDetail.Numero,
             Rue = lieuDetail.Rue,
+            Complement = lieuDetail.Complement,
             CodePostal = lieuDetail.CodePostal,
             Ville = lieuDetail.Ville
         };
@@ -53,19 +53,9 @@
         StateHasChanged();
     }
 
-    private void HandleLieuDeleted()
+    private void HandleLieuDeleted(int id)
     {
-        showDeleteConfirmation = true;
-    }
-
-    private void HandleCancelClick()
-    {
-        showDeleteConfirmation = false;
-    }
-
-    private void HandleConfirmDelete()
-    {
-        lieuService.DeleteLocation((selectedLieu?.Id).GetValueOrDefault());
+        lieuService.DeleteLocation(id);
         filteredLieux = lieuService.GetLocations();
         HandleLieuSelected(filteredLieux.First());
         StateHasChanged();
@@ -73,12 +63,6 @@
 }
 
 <div class="container-fluid mt-3">
-
-    @if (showDeleteConfirmation)
-    {
-        <DeleteConfirmation DeleteConfirmationHandler="HandleConfirmDelete" CancelHandler="HandleCancelClick" />
-    }
-
     <div class="row mb-2">
         <div class="col-md-4 d-flex justify-content-between">
             <span class="h1">Lieux de livraison</span>

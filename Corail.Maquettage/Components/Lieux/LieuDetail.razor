@@ -1,18 +1,24 @@
 ﻿@page "/lieu-detail"
 @using Corail.Maquettage.Models
+@using BlazorBootstrap;
 
 @inherits ComponentBase
 
 @code {
+
+    private ConfirmDialog confirmDialog = default!;
+
+    private bool isSaving;
+
     [Parameter]
     public LieuxDeLivraisonModel Model { get; set;  } = new();
     private bool isEditMode = false;
 
     [Parameter]
     public EventCallback<LieuxDeLivraisonModel> OnLieuSaved { get; set; }
-    
+
     [Parameter]
-    public EventCallback OnLieuDeleted { get; set; }
+    public EventCallback<int> OnLieuDeleted { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -20,13 +26,11 @@
 
     private async Task SaveLieu()
     {
+        isSaving = true;
         await OnLieuSaved.InvokeAsync(Model);
         isEditMode = false;
-    }
-
-    private async Task DeleteLieu()
-    {
-        await OnLieuDeleted.InvokeAsync();
+        await Task.Delay(3000);
+        isSaving = false;
     }
 
     private void EditLieu()
@@ -38,45 +42,121 @@
     {
         isEditMode = false;
     }
+
+    private async Task ShowDeleteConfirmation()
+    {
+        // deleteConfirmationModal.Show();
+        await ShowDialogAsync();
+    }
+
+    private async Task ConfirmDelete()
+    {
+        var id = Model.Id.GetValueOrDefault();
+
+        if (id > 0)
+        {
+            await OnLieuDeleted.InvokeAsync(id);
+        }
+    }
+
+    private void CancelDelete()
+    {
+        // Rien à faire spécifiquement ici
+    }
+
+    private async Task ShowDialogAsync()
+    {
+        var options = new ConfirmDialogOptions {
+            IsVerticallyCentered = true,
+            YesButtonText = "Supprimer",
+            YesButtonColor = ButtonColor.Danger,
+            NoButtonText = "Annuler",
+            NoButtonColor = ButtonColor.Secondary
+        };
+
+        var confirmation = await confirmDialog.ShowAsync(
+            title: "Suppression",
+            message1: $"Êtes-vous sûr(e) de vouloir supprimer le lieu '{Model.Nom}' ? ",
+            confirmDialogOptions: options);
+
+        if (confirmation)
+        {
+            await ConfirmDelete();
+        }
+        else
+        {
+            CancelDelete();
+        }
+    }
 }
 
-<div class="card">
+<Card>
+ 
     <EditForm Model="Model" OnValidSubmit="SaveLieu">
         <DataAnnotationsValidator />
-        <ValidationSummary class="text-danger" />
 
-        <div class="card-body">
+        <CardBody>
+
             <div class="form-floating mb-3">
                 <InputText id="nom" class="form-control" @bind-Value="Model.Nom" placeholder="" />
                 <label for="nom" class="form-label">Nom</label>
+                <span class="text-danger">
+                    <ValidationMessage For="@(() => Model.Nom)" />
+                </span>
             </div>
+           
 
             <div class="form-floating mb-3">
                 <InputText id="numero" class="form-control" @bind-Value="Model.Numero" />
-                <label for="numero" class="form-label">Numero</label>
+                <label for="numero" class="form-label">Numéro</label>
             </div>
 
             <div class="form-floating mb-3">
                 <InputText id="rue" class="form-control" @bind-Value="Model.Rue" />
                 <label for="rue" class="form-label">Rue</label>
+                <span class="text-danger">
+                    <ValidationMessage For="@(() => Model.Rue)" />
+                </span>
             </div>
-
+            <div class="form-floating mb-3">
+                <InputText id="complement" class="form-control" @bind-Value="Model.Complement" />
+                <label for="complement" class="form-label">Complément</label>
+            </div>
             <div class="form-floating mb-3">
                 <InputText id="codePostal" class="form-control" @bind-Value="Model.CodePostal" />
                 <label for="codePostal" class="form-label">Code postal</label>
+                <span class="text-danger">
+                    <ValidationMessage For="@(() => Model.CodePostal)" />
+                </span>
             </div>
 
             <div class="form-floating mb-3">
                 <InputText id="ville" class="form-control" @bind-Value="Model.Ville" />
                 <label for="ville" class="form-label">Ville</label>
+                <span class="text-danger">
+                    <ValidationMessage For="@(() => Model.Ville)" />
+                </span>
             </div>
-        </div>
 
-        <div class="card-footer d-flex justify-content-between">
-            <button type="button" class="btn btn-outline-danger btn-standard-size" @onclick="DeleteLieu"><i class="bi bi-trash3"></i> Supprimer</button>
-            <button type="submit" class="btn btn-primary ms-auto btn-standard-size"><i class="bi bi-check-lg"></i> Enregistrer</button>
-            @* <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button> *@
-        </div>
+        </CardBody>
+
+        <CardFooter class="d-flex justify-content-between">
+            <Button Type=ButtonType.Button Color=ButtonColor.Danger Outline=true @onclick="ShowDeleteConfirmation"><i class="bi bi-trash3"></i> Supprimer</Button>
+            <Button Type=ButtonType.Submit Color=ButtonColor.Primary Loading=isSaving LoadingText="Enregistrement...">
+                <ChildContent>
+                    <Icon Name=IconName.CheckLg></Icon> Enregistrer
+                </ChildContent>
+                
+               @*  <LoadingTemplate>
+                    <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    Enregistrement...
+                </LoadingTemplate> *@
+            </Button>
+        </CardFooter>
 
     </EditForm>
-</div>
+   
+   
+</Card>
+
+<ConfirmDialog @ref="confirmDialog" />
