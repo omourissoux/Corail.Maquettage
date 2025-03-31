@@ -1,0 +1,107 @@
+﻿@using Corail.Maquettage.Models
+@using System.Timers
+
+@code {
+    [Parameter]
+    public List<LieuDeLivraisonPreview> Lieux { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<LieuDeLivraisonPreview> OnLieuSelected { get; set; }
+
+    private List<LieuDeLivraisonPreview> filterLieuxAffiches = [];
+
+    private LieuDeLivraisonPreview selectedLieu = new();
+
+    private Timer? debounceTimer;
+
+    private string searchText = "";
+
+    protected override void OnInitialized()
+    {
+        debounceTimer = new Timer(300);
+        debounceTimer.Elapsed += async (sender, e) => await DebounceSearch();
+        debounceTimer.AutoReset = false;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        filterLieuxAffiches = Lieux;
+        ApplyFilters();
+    }
+
+    private async Task HandleSearch()
+    {
+        debounceTimer?.Stop();
+        debounceTimer?.Start();
+    }
+
+    private async Task DebounceSearch()
+    {
+        await InvokeAsync(() =>
+        {
+            ApplyFilters();
+            StateHasChanged();
+        });
+    }
+
+    private void ApplyFilters()
+    {
+        filterLieuxAffiches = Lieux
+            .Where(ll => ApplySearchFilter(ll))
+            .OrderBy(o => o.Nom)
+            .ToList();
+    }
+
+    private bool ApplySearchFilter(LieuDeLivraisonPreview lieu)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+            return true;
+
+        var search = searchText.ToLower();
+        return lieu.Nom.ToLower().Contains(search) ||
+               lieu.Ville.ToLower().Contains(search);
+    }
+
+    private async Task SelectLieu(LieuDeLivraisonPreview lieu)
+    {
+        selectedLieu = lieu;
+        await OnLieuSelected.InvokeAsync(lieu);
+    }
+
+    private string GetLieuClass(LieuDeLivraisonPreview lieu)
+    {
+        return lieu.Id == selectedLieu.Id ? "table-active" : string.Empty;
+    }
+}
+
+<div class="card">
+
+    <div class="card-header input-group mb-2">
+        <input type="text" class="form-control" placeholder="Rechercher..." @bind-value="searchText" @bind-value:event="oninput" @onkeyup="HandleSearch" />
+    </div>
+
+    <div class="card-body">
+        <table class="table table-sm table-dark table-hover table-striped">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>CP</th>
+                    <th>Ville</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var lieu in filterLieuxAffiches)
+                {
+                    <tr @onclick="() => SelectLieu(lieu)"
+                        style="cursor: pointer;" class="@GetLieuClass(lieu)">
+                        <td>@lieu.Nom</td>
+                        <td>@lieu.CodePostal</td>
+                        <td>@lieu.Ville</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

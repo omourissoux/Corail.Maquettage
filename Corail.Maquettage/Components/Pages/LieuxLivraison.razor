@@ -1,0 +1,83 @@
+﻿@page "/lieuxlivraison"
+@using Corail.Maquettage.Components.Lieux
+@using Corail.Maquettage.Models
+
+@rendermode InteractiveServer
+
+@inject Corail.Maquettage.Services.LieuxService lieuService
+
+@code
+{
+
+    private List<LieuDeLivraisonPreview> filteredLieux = new();
+    private LieuxDeLivraisonModel? selectedLieu;
+
+    protected override void OnInitialized()
+    {
+        filteredLieux = lieuService.GetLocations();
+        HandleLieuSelected(filteredLieux.First());
+    }
+
+    private void HandleLieuSelected(LieuDeLivraisonPreview lieu)
+    {
+        var lieuDetail = lieuService.GetLocationById(lieu.Id) ?? throw new Exception("404");
+        selectedLieu = new LieuxDeLivraisonModel()
+        {
+            Id = lieuDetail.Id,
+            Nom = lieuDetail.Nom,
+            Numero = lieuDetail.Numero,
+            Rue = lieuDetail.Rue,
+            CodePostal = lieuDetail.CodePostal,
+            Ville = lieuDetail.Ville
+        };
+    }
+
+    private void HandleNewLocation()
+    {
+        selectedLieu = new LieuxDeLivraisonModel();
+    }
+
+    private void HandleLieuSaved(LieuxDeLivraisonModel lieu)
+    {
+        if (lieu.Id.GetValueOrDefault() < 1)
+        {
+            lieuService.AddLocation(lieu);
+        }
+        else
+        {
+            lieuService.UpdateLocation(lieu);
+        }
+
+        filteredLieux = lieuService.GetLocations();
+        StateHasChanged();
+    }
+
+    private void HandleLieuDeleted(int id)
+    {
+        lieuService.DeleteLocation(id);
+        filteredLieux = lieuService.GetLocations();
+        HandleLieuSelected(filteredLieux.First());
+        StateHasChanged();
+    }
+
+}
+
+<div class="container-fluid mt-3">
+    <div class="row mb-2">
+        <div class="col-md-4 d-flex justify-content-between">
+            <span class="h1">Lieux de livraison</span>
+            <button class="btn btn-primary ml-auto btn-standard-size" @onclick="HandleNewLocation">
+                <i class="bi bi-plus-lg"></i>
+                Ajouter
+            </button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <LieuxList Lieux="@filteredLieux" OnLieuSelected="HandleLieuSelected" />
+        </div>
+        <div class="col-md-8">
+            <LieuDetail Model="@selectedLieu" OnLieuSaved="HandleLieuSaved" OnLieuDeleted="HandleLieuDeleted" />
+        </div>
+    </div>
+</div>

@@ -1,0 +1,82 @@
+﻿@page "/lieu-detail"
+@using Corail.Maquettage.Models
+
+@inherits ComponentBase
+
+@code {
+    [Parameter]
+    public LieuxDeLivraisonModel Model { get; set;  } = new();
+    private bool isEditMode = false;
+
+    [Parameter]
+    public EventCallback<LieuxDeLivraisonModel> OnLieuSaved { get; set; }
+    
+    [Parameter]
+    public EventCallback<int> OnLieuDeleted { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+    private async Task SaveLieu()
+    {
+        await OnLieuSaved.InvokeAsync(Model);
+        isEditMode = false;
+    }
+
+    private async Task DeleteLieu()
+    {
+        await OnLieuDeleted.InvokeAsync(Model.Id.GetValueOrDefault());
+    }
+
+    private void EditLieu()
+    {
+        isEditMode = true;
+    }
+
+    private void CancelEdit()
+    {
+        isEditMode = false;
+    }
+}
+
+<div class="card">
+    <EditForm Model="Model" OnValidSubmit="SaveLieu">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+
+        <div class="card-body">
+            <div class="form-floating mb-3">
+                <InputText id="nom" class="form-control" @bind-Value="Model.Nom" placeholder="" />
+                <label for="nom" class="form-label">Nom</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText id="numero" class="form-control" @bind-Value="Model.Numero" />
+                <label for="numero" class="form-label">Numero</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText id="rue" class="form-control" @bind-Value="Model.Rue" />
+                <label for="rue" class="form-label">Rue</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText id="codePostal" class="form-control" @bind-Value="Model.CodePostal" />
+                <label for="codePostal" class="form-label">Code postal</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <InputText id="ville" class="form-control" @bind-Value="Model.Ville" />
+                <label for="ville" class="form-label">Ville</label>
+            </div>
+        </div>
+
+        <div class="card-footer d-flex justify-content-between">
+            <button type="button" class="btn btn-outline-danger btn-standard-size" @onclick="DeleteLieu"><i class="bi bi-trash3"></i> Supprimer</button>
+            <button type="submit" class="btn btn-primary ms-auto btn-standard-size"><i class="bi bi-check-lg"></i> Enregistrer</button>
+            @* <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancel</button> *@
+        </div>
+
+    </EditForm>
+</div>
