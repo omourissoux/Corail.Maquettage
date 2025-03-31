@@ -12,7 +12,7 @@
     public EventCallback<LieuxDeLivraisonModel> OnLieuSaved { get; set; }
     
     [Parameter]
-    public EventCallback<int> OnLieuDeleted { get; set; }
+    public EventCallback OnLieuDeleted { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -26,7 +26,7 @@
 
     private async Task DeleteLieu()
     {
-        await OnLieuDeleted.InvokeAsync(Model.Id.GetValueOrDefault());
+        await OnLieuDeleted.InvokeAsync();
     }
 
     private void EditLieu()
