@@ -1,4 +1,5 @@
 ﻿@page "/lieuxlivraison"
+
 @using Corail.Maquettage.Components.Lieux
 @using Corail.Maquettage.Models
 
@@ -7,8 +8,7 @@
 @inject Corail.Maquettage.Services.LieuxService lieuService
 
 @code
-{
-
+{    
     private List<LieuDeLivraisonPreview> filteredLieux = new();
     private LieuxDeLivraisonModel? selectedLieu;
 
@@ -27,6 +27,7 @@
             Nom = lieuDetail.Nom,
             Numero = lieuDetail.Numero,
             Rue = lieuDetail.Rue,
+            Complement = lieuDetail.Complement,
             CodePostal = lieuDetail.CodePostal,
             Ville = lieuDetail.Ville
         };
@@ -59,7 +60,6 @@
         HandleLieuSelected(filteredLieux.First());
         StateHasChanged();
     }
-
 }
 
 <div class="container-fluid mt-3">
