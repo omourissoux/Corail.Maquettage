@@ -1,0 +1,68 @@
+﻿@using BlazorBootstrap
+@using Corail.Maquettage.Models
+
+
+<Grid TItem="LieuDeLivraisonPreview"
+Class="table table-hover table-bordered table-striped"
+Data="LieuxPreviews"
+EmptyText="Aucun lieu trouvé"
+OnRowClick="HandleRowClick"
+HeaderRowCssClass="bg-primary text-white border-bottom-0"
+RowClass="GetRowClass"
+Responsive=true
+AllowRowClick=true>
+
+    <GridColumns>
+        <GridColumn TItem="LieuDeLivraisonPreview" HeaderText="Nom" PropertyName="Nom" SortKeySelector="item => item.Nom">
+            @context.Nom
+        </GridColumn>
+        <GridColumn TItem="LieuDeLivraisonPreview" HeaderText="Code postal" PropertyName="CodePostal" SortKeySelector="item => item.CodePostal">
+            @context.CodePostal
+        </GridColumn>
+        <GridColumn TItem="LieuDeLivraisonPreview" HeaderText="Ville" PropertyName="Ville" SortKeySelector="item => item.Ville">
+            @context.Ville
+        </GridColumn>
+    </GridColumns>
+</Grid>
+
+@code {
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        LieuxPreviews ??= new List<LieuDeLivraisonPreview>();
+    }
+
+    [Parameter]
+    public IEnumerable<LieuDeLivraisonPreview> LieuxPreviews { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<LieuDeLivraisonPreview> LieuSelectedHandler { get; set; }
+
+    // [Parameter]
+    // public EventCallback<LieuDeLivraisonPreview> SelectedItemChangedHandler { get; set; }
+
+    // private async Task OnSelectedItemsChanged(HashSet<LieuDeLivraisonPreview> selectedItems)
+    // {
+    //     // On ne gère pas la sélection multiple (inutile pour nos cas d'usage)
+    //     // donc on se contente de récupérer uniquement le premier item de la liste.
+
+    //     var selectedItem = selectedItems is not null && selectedItems.Any() ? selectedItems.First() : new();
+
+    //     await SelectedItemChangedHandler.InvokeAsync(selectedItem);
+    // }
+
+    private async Task HandleRowClick(GridRowEventArgs<LieuDeLivraisonPreview> args)
+    {
+        foreach (var previewItem in LieuxPreviews)
+        {
+            previewItem.IsSelected = previewItem == args.Item;
+        }
+
+        await LieuSelectedHandler.InvokeAsync(args.Item);
+
+    }
+
+    private string GetRowClass(LieuDeLivraisonPreview item) => item.IsSelected ? "table-info" : string.Empty;
+}

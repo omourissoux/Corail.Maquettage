@@ -24,23 +24,35 @@ public class LieuxService
         Init();
     }
 
-    public List<LieuDeLivraisonPreview> GetLocations() => [.. lieuDeLivraisonInfos.Select(ll => new LieuDeLivraisonPreview()
+    public async Task<List<LieuDeLivraisonPreview>> GetLocations()
     {
-        Id = ll.Id,
-        Nom = ll.Nom,
-        CodePostal = ll.CodePostal,
-        Ville = ll.Ville
-    })];
+        // API Call simulation
+        await Task.Delay(1000);
 
-    public void AddLocation(LieuxDeLivraisonModel lieu)
+        return [.. lieuDeLivraisonInfos.Select(ll => new LieuDeLivraisonPreview()
+        {
+            Id = ll.Id,
+            Nom = ll.Nom,
+            CodePostal = ll.CodePostal,
+            Ville = ll.Ville
+        })];
+    }
+
+    public async Task AddLocation(LieuxDeLivraisonModel lieu)
     {
+        // API Call simulation
+        await Task.Delay(500);
+
         // ATTENTION génération de l'id uniquement pour du test en DUR !!!!!
         lieuDeLivraisonInfos.Add(new LieuDeLivraisonInfosDto(DateTime.Now.Minute + DateTime.Now.Second, lieu.Nom, lieu.CodePostal, lieu.Ville));
         lieuDeLivraisonDetail.Add(new LieuDeLivraisonDetailDto(DateTime.Now.Minute + DateTime.Now.Second, lieu.Nom, lieu.Numero, lieu.Rue, lieu.Complement, lieu.CodePostal, lieu.Ville));
     }
 
-    public void UpdateLocation(LieuxDeLivraisonModel lieu)
+    public async Task UpdateLocation(LieuxDeLivraisonModel lieu)
     {
+        // API Call simulation
+        await Task.Delay(500);
+
         var index = lieuDeLivraisonInfos.FindIndex(l => l.Id == lieu.Id);
         if (index != -1)
         {
@@ -49,13 +61,19 @@ public class LieuxService
         }
     }
 
-    public LieuDeLivraisonDetailDto? GetLocationById(int id)
+    public async Task<LieuDeLivraisonDetailDto?> GetLocationById(int id)
     {
+        // API Call simulation
+        await Task.Delay(250);
+
         return lieuDeLivraisonDetail.Find(l => l.Id == id);
     }
 
-    public void DeleteLocation(int id)
+    public async Task DeleteLocation(int id)
     {
+        // API Call simulation
+        await Task.Delay(250);
+
         lieuDeLivraisonInfos.RemoveAll(l => l.Id == id);
         lieuDeLivraisonDetail.RemoveAll(l => l.Id == id);
     }

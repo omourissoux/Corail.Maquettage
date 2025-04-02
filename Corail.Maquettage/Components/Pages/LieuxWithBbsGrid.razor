@@ -1,4 +1,4 @@
-﻿@page "/lieuxlivraison"
+﻿@page "/lieuxlivraisonBbsGrid"
 
 @using BlazorBootstrap
 @using Corail.Maquettage.Components.Lieux
@@ -9,7 +9,7 @@
 @inject Corail.Maquettage.Services.LieuxService lieuService
 
 @code
-{    
+{
     private LieuxDeLivraisonModel? currentLieuDetail;
 
     private HashSet<LieuDeLivraisonPreview> selectedLieuPreviews = new();
@@ -51,8 +51,16 @@
         StateHasChanged();
     }
 
+    private async Task<GridDataProviderResult<LieuDeLivraisonPreview>> LieuxDataProvider(GridDataProviderRequest<LieuDeLivraisonPreview> request)
+    {
+        if (lieux is null) // pull ll only one time for client-side filtering, sorting, and paging
+            lieux = await lieuService.GetLocations();
+
+        return await Task.FromResult(request.ApplyTo(lieux));
+    }
+
     private async Task HandleLieuSelected(LieuDeLivraisonPreview item)
-    { 
+    {
         var lieuDetail = await lieuService.GetLocationById(item.Id) ?? throw new Exception("404");
 
         currentLieuDetail = new LieuxDeLivraisonModel()
@@ -69,7 +77,7 @@
 }
 
 <div class="container-fluid mt-3">
-    <ThemeSwitcher/>
+    <ThemeSwitcher />
     <div class="row mb-2">
         <div class="col-md-4 d-flex justify-content-between">
             <h1>Lieux de livraison</h1>
@@ -81,7 +89,7 @@
     </div>
     <div class="row">
         <div class="col-md-4">
-            <LieuxList Lieux="@lieux" OnLieuSelected="HandleLieuSelected" />
+            <BbsLieuxList LieuxPreviews="@lieux" LieuSelectedHandler="HandleLieuSelected" />
         </div>
         <div class="col-md-8">
             <LieuDetail Model="@currentLieuDetail" OnLieuSaved="HandleLieuSaved" OnLieuDeleted="HandleLieuDeleted" />

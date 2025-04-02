@@ -1,0 +1,48 @@
+﻿@using BlazorBootstrap;
+@using Corail.Maquettage.Models
+@using System.Timers
+
+
+<table class="table table-hover table-bordered table-striped">
+    <thead>
+        <tr class="text-white border-bottom-0">
+            <th class="bg-primary text-start">Nom</th>
+            <th class="bg-primary text-start">CP</th>
+            <th class="bg-primary text-start">Ville</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var lieu in DisplayedLieux)
+        {
+            <tr @onclick="() => SelectLieu(lieu)"
+                style="cursor: pointer;" class="@GetLieuClass(lieu)">
+                <td>@lieu.Nom</td>
+                <td>@lieu.CodePostal</td>
+                <td>@lieu.Ville</td>
+            </tr>
+        }
+
+    </tbody>
+</table>
+
+@code {
+
+    private LieuDeLivraisonPreview selectedLieu = new();
+
+    [Parameter]
+    public IEnumerable<LieuDeLivraisonPreview> DisplayedLieux { get; set; } = [];
+
+    [Parameter]
+    public EventCallback<LieuDeLivraisonPreview> LieuSelectedHandler { get; set; }
+
+    private async Task SelectLieu(LieuDeLivraisonPreview lieu)
+    {
+        selectedLieu = lieu;
+        await LieuSelectedHandler.InvokeAsync(lieu);
+    }
+
+    private string GetLieuClass(LieuDeLivraisonPreview lieu)
+    {
+        return lieu.Id == selectedLieu.Id ? "table-info" : string.Empty;
+    }
+}
