@@ -1,10 +1,11 @@
-﻿@page "/lieu-detail"
-@using Corail.Maquettage.Models
+﻿@using Corail.Maquettage.Models
 @using BlazorBootstrap;
 
 @inherits ComponentBase
 
 @code {
+
+    private List<ToastMessage> messages = new List<ToastMessage>();
 
     private ConfirmDialog confirmDialog = default!;
 
@@ -12,7 +13,6 @@
 
     [Parameter]
     public LieuxDeLivraisonModel Model { get; set;  } = new();
-    private bool isEditMode = false;
 
     [Parameter]
     public EventCallback<LieuxDeLivraisonModel> OnLieuSaved { get; set; }
@@ -20,34 +20,29 @@
     [Parameter]
     public EventCallback<int> OnLieuDeleted { get; set; }
 
-    protected override async Task OnInitializedAsync()
+
+    protected override void OnParametersSet()
     {
+        base.OnParametersSet();
+
+        Model ??= new ();
     }
+
+    private void ShowMessage(ToastType toastType, string message) => messages.Add(new ToastMessage(toastType, "Terminé !", message));
 
     private async Task SaveLieu()
     {
         isSaving = true;
         await OnLieuSaved.InvokeAsync(Model);
-        isEditMode = false;
         await Task.Delay(3000);
         isSaving = false;
+
+        ShowMessage(ToastType.Success, "Le lieu a été enregistré avec succès.");
     }
 
-    private void EditLieu()
-    {
-        isEditMode = true;
-    }
+    private void CancelEdit() { }
 
-    private void CancelEdit()
-    {
-        isEditMode = false;
-    }
-
-    private async Task ShowDeleteConfirmation()
-    {
-        // deleteConfirmationModal.Show();
-        await ShowDialogAsync();
-    }
+    private async Task HandleDeleteClick() => await ShowDialogAsync();
 
     private async Task ConfirmDelete()
     {
@@ -61,7 +56,7 @@
 
     private void CancelDelete()
     {
-        // Rien à faire spécifiquement ici
+        // Empty for now
     }
 
     private async Task ShowDialogAsync()
@@ -91,12 +86,9 @@
 }
 
 <Card>
- 
     <EditForm Model="Model" OnValidSubmit="SaveLieu">
         <DataAnnotationsValidator />
-
         <CardBody>
-
             <div class="form-floating mb-3">
                 <InputText id="nom" class="form-control" @bind-Value="Model.Nom" placeholder="" />
                 <label for="nom" class="form-label">Nom</label>
@@ -139,24 +131,16 @@
             </div>
 
         </CardBody>
-
         <CardFooter class="d-flex justify-content-between">
-            <Button Type=ButtonType.Button Color=ButtonColor.Danger Outline=true @onclick="ShowDeleteConfirmation"><i class="bi bi-trash3"></i> Supprimer</Button>
+
+            <Button Type=ButtonType.Button Color=ButtonColor.Danger Outline=true @onclick="HandleDeleteClick"><i class="bi bi-trash3"></i> Supprimer</Button>
             <Button Type=ButtonType.Submit Color=ButtonColor.Primary Loading=isSaving LoadingText="Enregistrement...">
                 <ChildContent>
                     <Icon Name=IconName.CheckLg></Icon> Enregistrer
                 </ChildContent>
-                
-               @*  <LoadingTemplate>
-                    <span class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
-                    Enregistrement...
-                </LoadingTemplate> *@
             </Button>
         </CardFooter>
-
     </EditForm>
-   
-   
 </Card>
-
+<Toasts class="p-3" Messages="messages" Placement="ToastsPlacement.TopRight" AutoHide=true />
 <ConfirmDialog @ref="confirmDialog" />

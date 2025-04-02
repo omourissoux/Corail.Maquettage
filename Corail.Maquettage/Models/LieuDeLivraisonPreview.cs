@@ -6,4 +6,6 @@ public class LieuDeLivraisonPreview
     public string Nom { get; set; }
     public string CodePostal { get; set; }
     public string Ville { get; set; }
+
+    public bool IsSelected { get; set; }
 }

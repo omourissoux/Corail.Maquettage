@@ -3,13 +3,14 @@
 @using System.Timers
 
 @code {
+
     [Parameter]
-    public List<LieuDeLivraisonPreview> Lieux { get; set; } = [];
+    public IEnumerable<LieuDeLivraisonPreview> Lieux { get; set; } = [];
 
     [Parameter]
     public EventCallback<LieuDeLivraisonPreview> OnLieuSelected { get; set; }
 
-    private List<LieuDeLivraisonPreview> filterLieuxAffiches = [];
+    private IEnumerable<LieuDeLivraisonPreview> displayedLieux = [];
 
     private LieuDeLivraisonPreview selectedLieu = new();
 
@@ -19,7 +20,7 @@
 
     protected override void OnInitialized()
     {
-        debounceTimer = new Timer(300);
+        debounceTimer = new Timer(250);
         debounceTimer.Elapsed += async (sender, e) => await DebounceSearch();
         debounceTimer.AutoReset = false;
     }
@@ -27,8 +28,7 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        filterLieuxAffiches = Lieux;
-        ApplyFilters();
+        displayedLieux = Lieux ?? [];
     }
 
     private async Task HandleSearch()
@@ -48,7 +48,7 @@
 
     private void ApplyFilters()
     {
-        filterLieuxAffiches = Lieux
+        displayedLieux = Lieux
             .Where(ll => ApplySearchFilter(ll))
             .OrderBy(o => o.Nom)
             .ToList();
@@ -63,46 +63,36 @@
         return lieu.Nom.ToLower().Contains(search) ||
                lieu.Ville.ToLower().Contains(search);
     }
-
-    private async Task SelectLieu(LieuDeLivraisonPreview lieu)
-    {
-        selectedLieu = lieu;
-        await OnLieuSelected.InvokeAsync(lieu);
-    }
-
-    private string GetLieuClass(LieuDeLivraisonPreview lieu)
-    {
-        return lieu.Id == selectedLieu.Id ? "table-active" : string.Empty;
-    }
 }
 
-<div class="card">
+<div class="card h-100">
 
-    <div class="card-header input-group mb-2">
+    <div class="card-header input-group">
         <input type="text" class="form-control" placeholder="Rechercher..." @bind-value="searchText" @bind-value:event="oninput" @onkeyup="HandleSearch" />
     </div>
 
     <div class="card-body">
-        <table class="table table-sm table-dark table-hover table-striped">
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>CP</th>
-                    <th>Ville</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var lieu in filterLieuxAffiches)
-                {
-                    <tr @onclick="() => SelectLieu(lieu)"
-                        style="cursor: pointer;" class="@GetLieuClass(lieu)">
-                        <td>@lieu.Nom</td>
-                        <td>@lieu.CodePostal</td>
-                        <td>@lieu.Ville</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
 
+        @if (Lieux is null)
+        {
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-secondary" role="status">
+                    <span class="visually-hidden">Chargement...</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            if (displayedLieux.Any())
+            {
+                <LieuxDatagrid DisplayedLieux="displayedLieux" LieuSelectedHandler="OnLieuSelected" />
+            }
+            else
+            {
+                <div class="d-flex justify-content-center">
+                    <p class="text-body-secondary">Aucun lieu trouvé</p>
+                </div>
+            }
+        }
+    </div>
 </div>
